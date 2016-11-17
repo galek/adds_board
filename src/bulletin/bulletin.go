@@ -3,25 +3,15 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-
+  "os"
 	//_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func loadPage(title string) (*Page, error) {
-	filename := title + ".txt"
-	body, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return &Page{Title: title, Body: body}, nil
-}
-
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	var rows *sql.Rows
-	rows, err = stmtInsCateg.Query()
+	rows, err = stmtCateg.Query()
 
 	printError()
 	defer rows.Close()
@@ -36,9 +26,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+  if _, err = os.Stat("./bulletin.db");os.IsNotExist(err) {
+      println("database ./bulletin.db doesn't exist" )
+    return
+  }
 	connectionToDB()
+  http.Handle("/static/",http.StripPrefix("/static/",http.FileServer(http.Dir("./static"))))
 	http.HandleFunc("/", viewHandler)
-	defer stmtInsCateg.Close() // Close the statement when we leave main() / the program terminates
+	defer stmtCateg.Close() // Close the statement when we leave main() / the program terminates
 	defer db.Close()
 
 	http.ListenAndServe(":8080", nil)
@@ -50,7 +45,7 @@ type Page struct {
 }
 
 var db *sql.DB
-var stmtInsCateg *sql.Stmt
+var stmtCateg *sql.Stmt
 var err error
 
 func printError() {
@@ -66,16 +61,11 @@ func connectionToDB() {
   if err != nil {
     println(err.Error())
   }
-	//var result sql.Result
 	err = db.Ping()
 
 	printError()
 
 	// Prepare statement for inserting data
-	stmtInsCateg, err = db.Prepare("SELECT name FROM categories")
+	stmtCateg, err = db.Prepare("SELECT name FROM categories")
 	printError()
-
-	// Categories list from DB
-	//?место куда я вписываю свои данные
-
 }
