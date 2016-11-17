@@ -1,4 +1,3 @@
-// db
 package main
 
 import (
@@ -7,7 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func loadPage(title string) (*Page, error) {
@@ -61,8 +61,11 @@ func printError() {
 
 /**/
 func connectionToDB() {
-	db, err = sql.Open("mysql", "root:@/_abito")
-
+	//db, err = sql.Open("mysql", "root:@/_abito")
+  db, err = sql.Open("sqlite3","./bulletin.db")
+  if err != nil {
+    println(err.Error())
+  }
 	//var result sql.Result
 	err = db.Ping()
 

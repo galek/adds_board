@@ -1,4 +1,7 @@
 !tools/
 !tools/liteide/*
 *.exe
+bin/
 pkg/
+src/github.com/
+src/golang.org/
