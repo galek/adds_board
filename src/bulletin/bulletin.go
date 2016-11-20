@@ -24,10 +24,15 @@ func Footer(w http.ResponseWriter) {
 func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	Header(w)
 	CategoriesShow(w)
+	println("CategoriesHandler: with DB ", r.FormValue("id"))
 	Footer(w)
 }
 
 func ListOfAddsHandler(w http.ResponseWriter, r *http.Request) {
+
+	println("Body: with DB ", r.FormValue("id"))
+
+	//DEPRECATED
 	ListOfAddsQuery(1)
 	Header(w)
 	ListOfAddsShow(w)
@@ -45,9 +50,12 @@ func main() {
 
 	connectionToDB()
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+
 	http.HandleFunc("/", CategoriesHandler)
-	http.HandleFunc("/auto", ListOfAddsHandler)
+	http.HandleFunc("/adds", ListOfAddsHandler)
+
 	defer stmtCateg.Close() // Close the statement when we leave main() / the program terminates
+	defer stnAddsCatIds.Close()
 	defer stntAdds.Close()
 	defer db.Close()
 
@@ -80,6 +88,13 @@ func ListOfAddsQuery(selectedCategoryID int) {
 	printError()
 }
 
+/*Преобразует имя в ID категории*/
+func GetCategoryIDFromName(name string) {
+	var req string = "SELECT id FROM categories WHERE name=" + name
+	stnAddsCatIds, err = db.Prepare(req)
+	printError()
+}
+
 func ListOfAddsShow(w http.ResponseWriter) {
 	var rows *sql.Rows
 	rows, err = stntAdds.Query()
@@ -92,7 +107,6 @@ func ListOfAddsShow(w http.ResponseWriter) {
 		rows.Scan(&value)
 		fmt.Fprintf(w, "<a href='/%s'>%s</a>\n", value, value)
 	}
-	ListOfAddsQuery(1)
 
 	printError()
 }
@@ -113,7 +127,7 @@ func CategoriesShow(w http.ResponseWriter) {
 	var value string
 	for rows.Next() {
 		rows.Scan(&value)
-		fmt.Fprintf(w, "<a href='/%s'>%s</a>\n", value, value)
+		fmt.Fprintf(w, "<a href='/adds?id=%s'>%s</a>\n", value, value)
 	}
 
 	printError()
