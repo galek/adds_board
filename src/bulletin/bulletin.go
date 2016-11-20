@@ -204,6 +204,8 @@ func MyMessagesShow(w http.ResponseWriter, cookie string) {
 	defer stntMessageBody.Close()
 }
 
+// TODO: Передавать куку запросом
+
 func MyMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	println("MyMessagesHandler Body: with DB ", r.FormValue("cookie"))
 
