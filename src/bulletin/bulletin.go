@@ -78,6 +78,7 @@ func main() {
 	http.HandleFunc("/", CategoriesHandler)
 	http.HandleFunc("/adds", ListOfAddsHandler)
 	http.HandleFunc("/showmessage", MessageShowHandler)
+	http.HandleFunc("/mymessages", MyMessagesHandler)
 
 	defer stmtCateg.Close() // Close the statement when we leave main() / the program terminates
 	defer stntAdds.Close()
@@ -109,7 +110,6 @@ func ListOfAddsQuery(selectedCategoryID int) {
 
 /*Получает тело */
 func GetMessageBody(w http.ResponseWriter, id int) {
-	// TODO: Replace
 	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE id=" + strconv.Itoa(id)
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
 	stntMessageBody, err = db.Prepare(req)
@@ -175,6 +175,48 @@ func CategoriesShow(w http.ResponseWriter) {
 	}
 
 	printError()
+}
+
+//========================================
+func MyMessagesShow(w http.ResponseWriter, cookie string) {
+	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE cookie=" + cookie
+	var stntMessageBody *sql.Stmt // list of all adds by categoryID
+	stntMessageBody, err = db.Prepare(req)
+	printError()
+
+	//Читаем все значения
+	var rows *sql.Rows
+	rows, err = stntMessageBody.Query()
+
+	printError()
+
+	var caption string
+	var content string
+	var phonenumber string
+	var created int
+	for rows.Next() {
+		rows.Scan(&caption, &content, &phonenumber, &created)
+		fmt.Fprintf(w, "[DEBUG ONLY-MyMessagesShow] <p>%s</p> %s %s <p>%d</p>\n", caption, content, phonenumber, created)
+	}
+
+	printError()
+	defer rows.Close()
+	defer stntMessageBody.Close()
+}
+
+func MyMessagesHandler(w http.ResponseWriter, r *http.Request) {
+	println("MyMessagesHandler Body: with DB ", r.FormValue("cookie"))
+
+	cookieStr := r.FormValue("cookie")
+	if cookieStr == "" {
+		// TODO: ErrorPAGE
+		println("[DEBUG MyMessagesHandler]INVALID COOKIE")
+		return
+	}
+
+	Header(w)
+	MyMessagesShow(w, cookieStr)
+	Footer(w)
 }
 
 //========================================
