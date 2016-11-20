@@ -86,11 +86,6 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-type Page struct {
-	Title string
-	Body  []byte
-}
-
 var db *sql.DB
 var stmtCateg *sql.Stmt //List of categories
 var stntAdds *sql.Stmt  // list of all adds by categoryID
