@@ -1,4 +1,3 @@
-CREATE TABLE IF NOT EXISTS profiles (id INTEGER PRIMARY KEY, phone TEXT, name TEXT, password TEXT);
 CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, name TEXT);
-CREATE TABLE IF NOT EXISTS postings (id INTEGER PRIMARY KEY, profileid INTEGER, caption TEXT, content TEXT);
-CREATE TABLE IF NOT EXISTS session (id INTEGER PRIMARY KEY, profileid INTEGER, cookie TEXT, timestamp INTEGER);
+CREATE TABLE IF NOT EXISTS postings (id INTEGER PRIMARY KEY, cookie TEXT, caption TEXT, content TEXT, phonenumber TEXT, created INTEGER);
+CREATE TABLE IF NOT EXISTS favorites (id INTEGER PRIMARY KEY, cookie TEXT, postingid INTEGER);
