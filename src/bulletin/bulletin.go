@@ -49,8 +49,7 @@ func ListOfAddsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func MessageShowHandler(w http.ResponseWriter, r *http.Request) {
-	println("MessageShowHandler Body: with DB ", r.FormValue("id"),
-		r.FormValue("caption"), r.FormValue("content"), r.FormValue("phonenumber"), r.FormValue("created"))
+	println("MessageShowHandler Body: with DB ", r.FormValue("id"))
 
 	Header(w)
 	GetMessageBody(w)
@@ -106,6 +105,7 @@ func ListOfAddsQuery(selectedCategoryID int) {
 	printError()
 }
 
+// TODO: DELETE
 type Message struct {
 	id          int
 	cookie      string
@@ -118,7 +118,7 @@ type Message struct {
 /*Получает тело */
 func GetMessageBody(w http.ResponseWriter) {
 	// TODO: Replace
-	var req string = "SELECT * FROM postings WHERE id=" + strconv.Itoa(1)
+	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE id=" + strconv.Itoa(1)
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
 	stntMessageBody, err = db.Prepare(req)
 	printError()
@@ -129,10 +129,13 @@ func GetMessageBody(w http.ResponseWriter) {
 
 	printError()
 
-	var value string
+	var caption string
+	var content string
+	var phonenumber string
+	var created int
 	for rows.Next() {
-		rows.Scan(&value)
-		fmt.Fprintf(w, "<a href=''>GetMessageBody %s</a>\n", value, value)
+		rows.Scan(&caption, &content, &phonenumber, &created)
+		fmt.Fprintf(w, "<a href=''>[DEBUG ONLY-GetMessageBody] %s %s %s %d</a>\n", caption, content, phonenumber, created)
 	}
 
 	printError()
