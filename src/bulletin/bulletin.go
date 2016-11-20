@@ -22,19 +22,8 @@ func Footer(w http.ResponseWriter) {
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	Header(w)
-	var rows *sql.Rows
-	rows, err = stmtCateg.Query()
-
-	printError()
-	defer rows.Close()
-
-	var value string
-	for rows.Next() {
-		rows.Scan(&value)
-		fmt.Fprintf(w, "<a href='http://google.com'>%s</a>\n", value)
-	}
-
-	printError()
+	CategoriesShow(w)
+	ListOfAddsShow(w)
 	Footer(w)
 }
 
@@ -51,6 +40,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	http.HandleFunc("/", viewHandler)
 	defer stmtCateg.Close() // Close the statement when we leave main() / the program terminates
+	defer stntAdds.Close()
 	defer db.Close()
 
 	http.ListenAndServe(":8080", nil)
@@ -62,13 +52,60 @@ type Page struct {
 }
 
 var db *sql.DB
-var stmtCateg *sql.Stmt
+var stmtCateg *sql.Stmt     //List of categories
+var stntAdds *sql.Stmt      // list of all adds by categoryID
+var stnAddsCatIds *sql.Stmt // list of all categoriesIDs
 var err error
 
 func printError() {
 	if err != nil {
 		println("Error: with DB ", err.Error())
 	}
+}
+
+/**/
+func ListOfAddsQuery() {
+	// Prepare statement for inserting data
+	stntAdds, err = db.Prepare("SELECT caption FROM postings WHERE categoryID=1")
+	printError()
+}
+
+func ListOfAddsShow(w http.ResponseWriter) {
+	var rows *sql.Rows
+	rows, err = stntAdds.Query()
+
+	printError()
+	defer rows.Close()
+
+	var value string
+	for rows.Next() {
+		rows.Scan(&value)
+		fmt.Fprintf(w, "<a href='http://google.com'>%s</a>\n", value)
+	}
+
+	printError()
+}
+
+func CategoriesQuery() {
+	// Prepare statement for inserting data
+	stmtCateg, err = db.Prepare("SELECT name FROM categories")
+	printError()
+}
+
+func CategoriesShow(w http.ResponseWriter) {
+	var rows *sql.Rows
+	rows, err = stmtCateg.Query()
+
+	printError()
+	defer rows.Close()
+
+	var value string
+	for rows.Next() {
+		rows.Scan(&value)
+		fmt.Fprintf(w, "<a href='http://google.com'>%s</a>\n", value)
+	}
+
+	printError()
 }
 
 /**/
@@ -83,7 +120,6 @@ func connectionToDB() {
 
 	printError()
 
-	// Prepare statement for inserting data
-	stmtCateg, err = db.Prepare("SELECT name FROM categories")
-	printError()
+	CategoriesQuery()
+	ListOfAddsQuery()
 }
