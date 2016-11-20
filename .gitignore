@@ -1,5 +1,6 @@
-!tools/
-!tools/liteide/*
+tools/*
+tools/
+tools/liteide/*
 *.exe
 bin/
 pkg/
