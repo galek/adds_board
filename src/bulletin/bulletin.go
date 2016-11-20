@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	//_ "github.com/mattn/go-sqlite3"
 
@@ -20,9 +21,15 @@ func Footer(w http.ResponseWriter) {
 	fmt.Fprint(w, "</html>")
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request) {
+func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	Header(w)
 	CategoriesShow(w)
+	Footer(w)
+}
+
+func ListOfAddsHandler(w http.ResponseWriter, r *http.Request) {
+	ListOfAddsQuery(1)
+	Header(w)
 	ListOfAddsShow(w)
 	Footer(w)
 }
@@ -38,7 +45,8 @@ func main() {
 
 	connectionToDB()
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
-	http.HandleFunc("/", viewHandler)
+	http.HandleFunc("/", CategoriesHandler)
+	http.HandleFunc("/auto", ListOfAddsHandler)
 	defer stmtCateg.Close() // Close the statement when we leave main() / the program terminates
 	defer stntAdds.Close()
 	defer db.Close()
@@ -63,10 +71,12 @@ func printError() {
 	}
 }
 
-/**/
-func ListOfAddsQuery() {
-	// Prepare statement for inserting data
-	stntAdds, err = db.Prepare("SELECT caption FROM postings WHERE categoryID=1")
+/*
+Получает список всех объявлений, по выбранной категории
+*/
+func ListOfAddsQuery(selectedCategoryID int) {
+	var req string = "SELECT caption FROM postings WHERE categoryID=" + strconv.Itoa(selectedCategoryID)
+	stntAdds, err = db.Prepare(req)
 	printError()
 }
 
@@ -80,8 +90,9 @@ func ListOfAddsShow(w http.ResponseWriter) {
 	var value string
 	for rows.Next() {
 		rows.Scan(&value)
-		fmt.Fprintf(w, "<a href='http://google.com'>%s</a>\n", value)
+		fmt.Fprintf(w, "<a href='/%s'>%s</a>\n", value, value)
 	}
+	ListOfAddsQuery(1)
 
 	printError()
 }
@@ -102,7 +113,7 @@ func CategoriesShow(w http.ResponseWriter) {
 	var value string
 	for rows.Next() {
 		rows.Scan(&value)
-		fmt.Fprintf(w, "<a href='http://google.com'>%s</a>\n", value)
+		fmt.Fprintf(w, "<a href='/%s'>%s</a>\n", value, value)
 	}
 
 	printError()
@@ -121,5 +132,4 @@ func connectionToDB() {
 	printError()
 
 	CategoriesQuery()
-	ListOfAddsQuery()
 }
