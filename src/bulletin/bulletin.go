@@ -175,7 +175,7 @@ func CategoriesShow(w http.ResponseWriter) {
 	var id int
 	for rows.Next() {
 		rows.Scan(&id, &value)
-		fmt.Fprintf(w, "<a href='/adds?id=%d'>[DEBUG ONLY CategoriesShow]%s</a>\n", id, value)
+		fmt.Fprintf(w, "<p><a href='/adds?id=%d'>[DEBUG ONLY CategoriesShow]%s</a>\n</p>", id, value)
 	}
 
 	printError()
