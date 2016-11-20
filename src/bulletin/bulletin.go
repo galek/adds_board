@@ -101,7 +101,7 @@ func printError() {
 Получает список всех объявлений, по выбранной категории
 */
 func ListOfAddsQuery(selectedCategoryID int) {
-	var req string = "SELECT caption FROM postings WHERE categoryID=" + strconv.Itoa(selectedCategoryID)
+	var req string = "SELECT id,caption FROM postings WHERE categoryID=" + strconv.Itoa(selectedCategoryID)
 	stntAdds, err = db.Prepare(req)
 	printError()
 }
@@ -149,9 +149,10 @@ func ListOfAddsShow(w http.ResponseWriter) {
 	defer rows.Close()
 
 	var value string
+	var id int
 	for rows.Next() {
-		rows.Scan(&value)
-		fmt.Fprintf(w, "<a href='/%s'>%s</a>\n", value, value)
+		rows.Scan(&id, &value)
+		fmt.Fprintf(w, "<p><a href='/showmessage?id=%d'>[DEBUG ONLY ListOfAddsShow]%s</a>\n</p>", id, value)
 	}
 
 	printError()
