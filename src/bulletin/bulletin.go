@@ -11,6 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+//========================================
 func Header(w http.ResponseWriter) {
 	fmt.Fprint(w, "<html>")
 	fmt.Fprint(w, "<body>")
@@ -21,6 +22,7 @@ func Footer(w http.ResponseWriter) {
 	fmt.Fprint(w, "</html>")
 }
 
+//========================================
 func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	Header(w)
 	CategoriesShow(w)
@@ -30,12 +32,28 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 func ListOfAddsHandler(w http.ResponseWriter, r *http.Request) {
 
-	println("Body: with DB ", r.FormValue("id"))
+	println("ListOfAddsHandler Body: with DB ", r.FormValue("id"))
 
-	//DEPRECATED
-	ListOfAddsQuery(1)
+	i, err := strconv.ParseInt(r.FormValue("id")[0:], 10, 32)
+	if err != nil {
+		println("Invalid error id ", i)
+		return
+	}
+	id := int(i)
+
+	ListOfAddsQuery(id)
+
 	Header(w)
 	ListOfAddsShow(w)
+	Footer(w)
+}
+
+func MessageShowHandler(w http.ResponseWriter, r *http.Request) {
+	println("MessageShowHandler Body: with DB ", r.FormValue("id"),
+		r.FormValue("caption"), r.FormValue("content"), r.FormValue("phonenumber"), r.FormValue("created"))
+
+	Header(w)
+	GetMessageBody(w)
 	Footer(w)
 }
 
@@ -53,9 +71,9 @@ func main() {
 
 	http.HandleFunc("/", CategoriesHandler)
 	http.HandleFunc("/adds", ListOfAddsHandler)
+	http.HandleFunc("/showmessage", MessageShowHandler)
 
 	defer stmtCateg.Close() // Close the statement when we leave main() / the program terminates
-	defer stnAddsCatIds.Close()
 	defer stntAdds.Close()
 	defer db.Close()
 
@@ -68,9 +86,9 @@ type Page struct {
 }
 
 var db *sql.DB
-var stmtCateg *sql.Stmt     //List of categories
-var stntAdds *sql.Stmt      // list of all adds by categoryID
-var stnAddsCatIds *sql.Stmt // list of all categoriesIDs
+var stmtCateg *sql.Stmt //List of categories
+var stntAdds *sql.Stmt  // list of all adds by categoryID
+//var stntMessageBody *sql.Stmt // list of all adds by categoryID
 var err error
 
 func printError() {
@@ -88,13 +106,41 @@ func ListOfAddsQuery(selectedCategoryID int) {
 	printError()
 }
 
-/*Преобразует имя в ID категории*/
-func GetCategoryIDFromName(name string) {
-	var req string = "SELECT id FROM categories WHERE name=" + name
-	stnAddsCatIds, err = db.Prepare(req)
-	printError()
+type Message struct {
+	id          int
+	cookie      string
+	caption     string
+	content     string
+	phonenumber string
+	created     int
 }
 
+/*Получает тело */
+func GetMessageBody(w http.ResponseWriter) {
+	// TODO: Replace
+	var req string = "SELECT * FROM postings WHERE id=" + strconv.Itoa(1)
+	var stntMessageBody *sql.Stmt // list of all adds by categoryID
+	stntMessageBody, err = db.Prepare(req)
+	printError()
+
+	//Читаем все значения
+	var rows *sql.Rows
+	rows, err = stntMessageBody.Query()
+
+	printError()
+
+	var value string
+	for rows.Next() {
+		rows.Scan(&value)
+		fmt.Fprintf(w, "<a href=''>GetMessageBody %s</a>\n", value, value)
+	}
+
+	printError()
+	defer rows.Close()
+	defer stntMessageBody.Close()
+}
+
+//========================================
 func ListOfAddsShow(w http.ResponseWriter) {
 	var rows *sql.Rows
 	rows, err = stntAdds.Query()
@@ -111,9 +157,10 @@ func ListOfAddsShow(w http.ResponseWriter) {
 	printError()
 }
 
+//========================================
 func CategoriesQuery() {
 	// Prepare statement for inserting data
-	stmtCateg, err = db.Prepare("SELECT name FROM categories")
+	stmtCateg, err = db.Prepare("SELECT id, name FROM categories")
 	printError()
 }
 
@@ -125,14 +172,16 @@ func CategoriesShow(w http.ResponseWriter) {
 	defer rows.Close()
 
 	var value string
+	var id int
 	for rows.Next() {
-		rows.Scan(&value)
-		fmt.Fprintf(w, "<a href='/adds?id=%s'>%s</a>\n", value, value)
+		rows.Scan(&id, &value)
+		fmt.Fprintf(w, "<a href='/adds?id=%d'>[DEBUG ONLY CategoriesShow]%s</a>\n", id, value)
 	}
 
 	printError()
 }
 
+//========================================
 /**/
 func connectionToDB() {
 	//	db, err = sql.Open("sqlite3", "./bulletin.db")
