@@ -4,12 +4,24 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-  "os"
-	//_ "github.com/go-sql-driver/mysql"
-	_ "github.com/mattn/go-sqlite3"
+
+	//_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
+func Header(w http.ResponseWriter) {
+	fmt.Fprint(w, "<html>")
+	fmt.Fprint(w, "<body>")
+}
+
+func Footer(w http.ResponseWriter) {
+	fmt.Fprint(w, "</body>")
+	fmt.Fprint(w, "</html>")
+}
+
 func viewHandler(w http.ResponseWriter, r *http.Request) {
+	Header(w)
 	var rows *sql.Rows
 	rows, err = stmtCateg.Query()
 
@@ -19,19 +31,24 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	var value string
 	for rows.Next() {
 		rows.Scan(&value)
-		fmt.Fprintf(w, "%s", value)
+		fmt.Fprintf(w, "<a href='http://google.com'>%s</a>\n", value)
 	}
 
 	printError()
+	Footer(w)
 }
 
 func main() {
-  if _, err = os.Stat("./bulletin.db");os.IsNotExist(err) {
-      println("database ./bulletin.db doesn't exist" )
-    return
-  }
+
+	//{
+	//	if _, err = os.Stat("./bulletin.db"); os.IsNotExist(err) {
+	//		println("database ./bulletin.db doesn't exist")
+	//		return
+	//	}
+	//}
+
 	connectionToDB()
-  http.Handle("/static/",http.StripPrefix("/static/",http.FileServer(http.Dir("./static"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	http.HandleFunc("/", viewHandler)
 	defer stmtCateg.Close() // Close the statement when we leave main() / the program terminates
 	defer db.Close()
@@ -56,11 +73,12 @@ func printError() {
 
 /**/
 func connectionToDB() {
-	//db, err = sql.Open("mysql", "root:@/_abito")
-  db, err = sql.Open("sqlite3","./bulletin.db")
-  if err != nil {
-    println(err.Error())
-  }
+	//	db, err = sql.Open("sqlite3", "./bulletin.db")
+	db, err = sql.Open("mysql", "root:@/_abito")
+
+	if err != nil {
+		println(err.Error())
+	}
 	err = db.Ping()
 
 	printError()
