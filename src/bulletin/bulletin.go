@@ -230,9 +230,55 @@ func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO:TESTING OF CREATION NEW MESSAGE
+	if cookieStr == "800" && idStr == "800" {
+		CreateNewMessage(w, "sdwe", "800")
+	}
+
 	Header(w)
 	DeleteMessageReq(w, cookieStr, idStr)
 	Footer(w)
+}
+
+//========================================
+// СОЗДАНИЕ НОВОГО СООБЩЕНИЯ  - НЕ ЗАКОНЧЕНО
+// 99999-DATE
+func CreateNewMessage(w http.ResponseWriter, cookie string, id string) {
+	_CreateEmptyMessage(w, cookie, id)
+	UpdateMessage(w, id, "98", cookie, "caption", "content", "phonenumber", "99999")
+}
+
+func _CreateEmptyMessage(w http.ResponseWriter, cookie string, id string) {
+	println("[CreateEmptyMessage]")
+
+	var req string = "INSERT INTO `postings` VALUES ('" + id + "'," + "''," + "'" + cookie + "'," + "'', '', '', '9999')"
+
+	var stntMessageBody *sql.Stmt // list of all adds by categoryID
+	stntMessageBody, err = db.Prepare(req)
+	printError()
+
+	//Читаем все значения
+	var rows *sql.Rows
+	rows, err = stntMessageBody.Query()
+
+	printError()
+	defer rows.Close()
+	defer stntMessageBody.Close()
+}
+func UpdateMessage(w http.ResponseWriter, id string, categoryID string, cookie string, caption string, content string, phonenumber string, created string) {
+	var req string = "UPDATE postings SET categoryID='" + categoryID + "'" + ", caption='" + caption + "'" + ", content='" + content + "'" + ", phonenumber='" + phonenumber + "'" + ", created='" + created + "'" + "WHERE id='" + id + "'" + "AND cookie='" + cookie + "'"
+
+	var stntMessageBody *sql.Stmt // list of all adds by categoryID
+	stntMessageBody, err = db.Prepare(req)
+	printError()
+
+	//Читаем все значения
+	var rows *sql.Rows
+	rows, err = stntMessageBody.Query()
+
+	printError()
+	defer rows.Close()
+	defer stntMessageBody.Close()
 }
 
 //========================================
