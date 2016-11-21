@@ -79,6 +79,7 @@ func main() {
 	http.HandleFunc("/adds", ListOfAddsHandler)
 	http.HandleFunc("/showmessage", MessageShowHandler)
 	http.HandleFunc("/mymessages", MyMessagesHandler)
+	http.HandleFunc("/deletemessage", DeleteMessageHandler)
 
 	defer stmtCateg.Close() // Close the statement when we leave main() / the program terminates
 	defer stntAdds.Close()
@@ -178,6 +179,51 @@ func CategoriesShow(w http.ResponseWriter) {
 }
 
 //========================================
+// УДАЛЕНИЕ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО
+// тут надо определиться, будем удалять на 1 странице со списком, или на отдельной странице
+//========================================
+func DeleteMessageReq(w http.ResponseWriter, cookie string, id string) {
+	// TODO: 10 for tests
+	var req string = "DELETE FROM postings WHERE cookie='" + cookie + "'" + "AND id ='" + id + "'"
+	var stntMessageBody *sql.Stmt // list of all adds by categoryID
+	stntMessageBody, err = db.Prepare(req)
+	printError()
+
+	//Читаем все значения
+	var rows *sql.Rows
+	rows, err = stntMessageBody.Query()
+
+	printError()
+
+	defer rows.Close()
+	defer stntMessageBody.Close()
+}
+
+// TODO: Передавать куку запросом
+func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
+	println("DeleteMessageHandler Body: with DB ", r.FormValue("cookie"))
+	println("DeleteMessageHandler Body: with DB ", r.FormValue("id"))
+
+	cookieStr := r.FormValue("cookie")
+	if cookieStr == "" {
+		// TODO: ErrorPAGE
+		println("[DEBUG DeleteMessageHandler]INVALID COOKIE")
+		return
+	}
+	idStr := r.FormValue("id")
+	if cookieStr == "" {
+		// TODO: ErrorPAGE
+		println("[DEBUG DeleteMessageHandler]INVALID id")
+		return
+	}
+
+	Header(w)
+	DeleteMessageReq(w, cookieStr, idStr)
+	Footer(w)
+}
+
+//========================================
+// СПИСОК МОИХ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО
 func MyMessagesShow(w http.ResponseWriter, cookie string) {
 	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE cookie=" + cookie
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
