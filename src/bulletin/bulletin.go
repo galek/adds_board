@@ -37,6 +37,7 @@ func ListOfAddsHandler(w http.ResponseWriter, r *http.Request) {
 	i, err := strconv.ParseInt(r.FormValue("id")[0:], 10, 32)
 	if err != nil {
 		println("Invalid error id ", i)
+		ShowErrorPage(w)
 		return
 	}
 	id := int(i)
@@ -54,6 +55,7 @@ func MessageShowHandler(w http.ResponseWriter, r *http.Request) {
 	i, err := strconv.ParseInt(r.FormValue("id")[0:], 10, 32)
 	if err != nil {
 		println("Invalid error id ", i)
+		ShowErrorPage(w)
 		return
 	}
 	id := int(i)
@@ -132,6 +134,11 @@ func GetMessageBody(w http.ResponseWriter, id int) {
 	}
 
 	printError()
+
+	if caption == "" && content == "" && phonenumber == "" && created == 0 {
+		ShowErrorPage(w)
+	}
+
 	defer rows.Close()
 	defer stntMessageBody.Close()
 }
@@ -178,6 +185,12 @@ func CategoriesShow(w http.ResponseWriter) {
 	printError()
 }
 
+func ShowErrorPage(w http.ResponseWriter) {
+	Header(w)
+	fmt.Fprintf(w, "ERROR - 404")
+	Footer(w)
+}
+
 //========================================
 // УДАЛЕНИЕ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО
 // тут надо определиться, будем удалять на 1 странице со списком, или на отдельной странице
@@ -206,14 +219,14 @@ func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 
 	cookieStr := r.FormValue("cookie")
 	if cookieStr == "" {
-		// TODO: ErrorPAGE
 		println("[DEBUG DeleteMessageHandler]INVALID COOKIE")
+		ShowErrorPage(w)
 		return
 	}
 	idStr := r.FormValue("id")
 	if cookieStr == "" {
-		// TODO: ErrorPAGE
 		println("[DEBUG DeleteMessageHandler]INVALID id")
+		ShowErrorPage(w)
 		return
 	}
 
@@ -257,8 +270,8 @@ func MyMessagesHandler(w http.ResponseWriter, r *http.Request) {
 
 	cookieStr := r.FormValue("cookie")
 	if cookieStr == "" {
-		// TODO: ErrorPAGE
 		println("[DEBUG MyMessagesHandler]INVALID COOKIE")
+		ShowErrorPage(w)
 		return
 	}
 
