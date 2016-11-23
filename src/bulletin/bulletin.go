@@ -24,6 +24,7 @@ func Footer(w http.ResponseWriter) {
 
 //========================================
 func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
+	MakeCookiesGreatAgain(w, r)
 	Header(w)
 	CategoriesShow(w)
 	println("CategoriesHandler: with DB ", r.FormValue("id"))
@@ -33,6 +34,7 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 func ListOfAddsHandler(w http.ResponseWriter, r *http.Request) {
 
 	println("ListOfAddsHandler Body: with DB ", r.FormValue("id"))
+	MakeCookiesGreatAgain(w, r)
 
 	i, err := strconv.ParseInt(r.FormValue("id")[0:], 10, 32)
 	if err != nil {
@@ -51,6 +53,7 @@ func ListOfAddsHandler(w http.ResponseWriter, r *http.Request) {
 
 func MessageShowHandler(w http.ResponseWriter, r *http.Request) {
 	println("MessageShowHandler Body: with DB ", r.FormValue("id"))
+	MakeCookiesGreatAgain(w, r)
 
 	i, err := strconv.ParseInt(r.FormValue("id")[0:], 10, 32)
 	if err != nil {
@@ -83,14 +86,16 @@ func main() {
 	http.HandleFunc("/mymessages", MyMessagesHandler)
 	http.HandleFunc("/deletemessage", DeleteMessageHandler)
 
+	CookiesInit()
+
 	defer stmtCateg.Close() // Close the statement when we leave main() / the program terminates
 	defer stntAdds.Close()
-	defer db.Close()
+	defer DB.Close()
 
 	http.ListenAndServe(":8080", nil)
 }
 
-var db *sql.DB
+var DB *sql.DB
 var stmtCateg *sql.Stmt //List of categories
 var stntAdds *sql.Stmt  // list of all adds by categoryID
 //var stntMessageBody *sql.Stmt // list of all adds by categoryID
@@ -107,7 +112,7 @@ func printError() {
 */
 func ListOfAddsQuery(selectedCategoryID int) {
 	var req string = "SELECT id,caption FROM postings WHERE categoryID=" + strconv.Itoa(selectedCategoryID)
-	stntAdds, err = db.Prepare(req)
+	stntAdds, err = DB.Prepare(req)
 	printError()
 }
 
@@ -115,7 +120,7 @@ func ListOfAddsQuery(selectedCategoryID int) {
 func GetMessageBody(w http.ResponseWriter, id int) {
 	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE id=" + strconv.Itoa(id)
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
-	stntMessageBody, err = db.Prepare(req)
+	stntMessageBody, err = DB.Prepare(req)
 	printError()
 
 	//Читаем все значения
@@ -164,7 +169,7 @@ func ListOfAddsShow(w http.ResponseWriter) {
 //========================================
 func CategoriesQuery() {
 	// Prepare statement for inserting data
-	stmtCateg, err = db.Prepare("SELECT id, name FROM categories")
+	stmtCateg, err = DB.Prepare("SELECT id, name FROM categories")
 	printError()
 }
 
@@ -199,7 +204,7 @@ func DeleteMessageReq(w http.ResponseWriter, cookie string, id string) {
 	// TODO: 10 for tests
 	var req string = "DELETE FROM postings WHERE cookie='" + cookie + "'" + "AND id ='" + id + "'"
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
-	stntMessageBody, err = db.Prepare(req)
+	stntMessageBody, err = DB.Prepare(req)
 	printError()
 
 	//Читаем все значения
@@ -216,6 +221,8 @@ func DeleteMessageReq(w http.ResponseWriter, cookie string, id string) {
 func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 	println("DeleteMessageHandler Body: with DB ", r.FormValue("cookie"))
 	println("DeleteMessageHandler Body: with DB ", r.FormValue("id"))
+
+	MakeCookiesGreatAgain(w, r)
 
 	cookieStr := r.FormValue("cookie")
 	if cookieStr == "" {
@@ -254,7 +261,7 @@ func _CreateEmptyMessage(w http.ResponseWriter, cookie string, id string) {
 	var req string = "INSERT INTO `postings` VALUES ('" + id + "'," + "''," + "'" + cookie + "'," + "'', '', '', '9999')"
 
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
-	stntMessageBody, err = db.Prepare(req)
+	stntMessageBody, err = DB.Prepare(req)
 	printError()
 
 	//Читаем все значения
@@ -269,7 +276,7 @@ func UpdateMessage(w http.ResponseWriter, id string, categoryID string, cookie s
 	var req string = "UPDATE postings SET categoryID='" + categoryID + "'" + ", caption='" + caption + "'" + ", content='" + content + "'" + ", phonenumber='" + phonenumber + "'" + ", created='" + created + "'" + "WHERE id='" + id + "'" + "AND cookie='" + cookie + "'"
 
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
-	stntMessageBody, err = db.Prepare(req)
+	stntMessageBody, err = DB.Prepare(req)
 	printError()
 
 	//Читаем все значения
@@ -286,7 +293,7 @@ func UpdateMessage(w http.ResponseWriter, id string, categoryID string, cookie s
 func MyMessagesShow(w http.ResponseWriter, cookie string) {
 	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE cookie=" + cookie
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
-	stntMessageBody, err = db.Prepare(req)
+	stntMessageBody, err = DB.Prepare(req)
 	printError()
 
 	//Читаем все значения
@@ -313,6 +320,7 @@ func MyMessagesShow(w http.ResponseWriter, cookie string) {
 
 func MyMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	println("MyMessagesHandler Body: with DB ", r.FormValue("cookie"))
+	MakeCookiesGreatAgain(w, r)
 
 	cookieStr := r.FormValue("cookie")
 	if cookieStr == "" {
@@ -329,13 +337,13 @@ func MyMessagesHandler(w http.ResponseWriter, r *http.Request) {
 //========================================
 /**/
 func connectionToDB() {
-	//	db, err = sql.Open("sqlite3", "./bulletin.db")
-	db, err = sql.Open("mysql", "root:@/_abito")
+	//	DB, err = sql.Open("sqlite3", "./bulletin.db")
+	DB, err = sql.Open("mysql", "root:@/_abito")
 
 	if err != nil {
 		println(err.Error())
 	}
-	err = db.Ping()
+	err = DB.Ping()
 
 	printError()
 
