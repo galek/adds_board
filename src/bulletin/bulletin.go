@@ -47,12 +47,17 @@ func ListOfAddsHandler(w http.ResponseWriter, r *http.Request) {
 	ListOfAddsQuery(id)
 
 	Header(w)
+
+	fmt.Fprintf(w, "<button onclick=\"location.href='/newmessage?categoryID=%d'\">Add</button>", id)
+
 	ListOfAddsShow(w)
+
 	Footer(w)
 }
 
 func MessageShowHandler(w http.ResponseWriter, r *http.Request) {
 	println("MessageShowHandler Body: with DB ", r.FormValue("id"))
+
 	MakeCookiesGreatAgain(w, r)
 
 	i, err := strconv.ParseInt(r.FormValue("id")[0:], 10, 32)
@@ -258,7 +263,6 @@ func NewMessageHandlerUtil(w http.ResponseWriter, r *http.Request) {
 // УДАЛЕНИЕ СООБЩЕНИЙ
 //========================================
 func DeleteMessageReq(w http.ResponseWriter, id string) {
-	// TODO: 10 for tests
 	var req string = "DELETE FROM postings WHERE cookieid=? AND id = ?"
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
 	stntMessageBody, err = DB.Prepare(req)
@@ -291,13 +295,11 @@ func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 //========================================
-// СОЗДАНИЕ НОВОГО СООБЩЕНИЯ  - НЕ ЗАКОНЧЕНО
+// СОЗДАНИЕ НОВОГО СООБЩЕНИЯ  - НЕ ЗАКОНЧЕНО(не указана дата. Нет редактирования)
 // 99999-DATE
 
 func _CreateEmptyMessage(categoryID int, caption string, body string, telephone string) {
 	println("[CreateEmptyMessage]")
-
-	//var req string = "INSERT INTO `postings` VALUES ('" + id + "'," + "''," + "'" + cookie + "'," + "'', '', '', '9999')"
 
 	var req string = "INSERT INTO postings (categoryId, cookieid, caption, content, phonenumber, created) VALUES(?,?,?,?,?,9999)"
 
@@ -315,7 +317,7 @@ func _CreateEmptyMessage(categoryID int, caption string, body string, telephone 
 }
 
 //========================================
-// СПИСОК МОИХ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО
+// СПИСОК МОИХ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО(нет редактирования)
 func MyMessagesShow(w http.ResponseWriter) {
 	var req string = "SELECT id, caption, content, phonenumber, created FROM postings WHERE cookieid=?" // + string(CookieId)
 	var stntMessageBody *sql.Stmt                                                                       // list of all adds by categoryID
@@ -345,7 +347,6 @@ func MyMessagesShow(w http.ResponseWriter) {
 	defer stntMessageBody.Close()
 }
 
-// TODO: Передавать куку запросом
 func MyMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	println("MyMessagesHandler Body: with DB ", r.FormValue("cookie"))
 	MakeCookiesGreatAgain(w, r)
