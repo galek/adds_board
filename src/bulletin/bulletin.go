@@ -187,6 +187,8 @@ func CategoriesShow(w http.ResponseWriter) {
 		fmt.Fprintf(w, "<p><a href='/adds?id=%d'>[DEBUG ONLY CategoriesShow]%s</a>\n</p>", id, value)
 	}
 
+	fmt.Fprintf(w, "<p align=\"right\"><a href='/mymessages'>My Messages</a>\n</p>")
+
 	printError()
 }
 
@@ -217,6 +219,7 @@ func DeleteMessageReq(w http.ResponseWriter, id string) {
 	defer stntMessageBody.Close()
 }
 
+// TODO: CHECK
 func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 	println("DeleteMessageHandler Body: with DB ", r.FormValue("cookie"))
 	println("DeleteMessageHandler Body: with DB ", r.FormValue("id"))
@@ -290,14 +293,14 @@ func UpdateMessage(w http.ResponseWriter, id string, categoryID string, cookie s
 //========================================
 // СПИСОК МОИХ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО
 func MyMessagesShow(w http.ResponseWriter) {
-	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE cookieid=" + string(CookieId)
-	var stntMessageBody *sql.Stmt // list of all adds by categoryID
+	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE cookieid=?" // + string(CookieId)
+	var stntMessageBody *sql.Stmt                                                                   // list of all adds by categoryID
 	stntMessageBody, err = DB.Prepare(req)
 	printError()
 
 	//Читаем все значения
 	var rows *sql.Rows
-	rows, err = stntMessageBody.Query()
+	rows, err = stntMessageBody.Query(CookieId)
 
 	printError()
 
@@ -320,13 +323,6 @@ func MyMessagesShow(w http.ResponseWriter) {
 func MyMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	println("MyMessagesHandler Body: with DB ", r.FormValue("cookie"))
 	MakeCookiesGreatAgain(w, r)
-
-	cookieStr := r.FormValue("cookie")
-	if cookieStr == "" {
-		println("[DEBUG MyMessagesHandler]INVALID COOKIE")
-		ShowErrorPage(w)
-		return
-	}
 
 	Header(w)
 	MyMessagesShow(w)
