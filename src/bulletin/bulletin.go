@@ -204,14 +204,16 @@ func ShowErrorPage(w http.ResponseWriter) {
 //========================================
 func DeleteMessageReq(w http.ResponseWriter, id string) {
 	// TODO: 10 for tests
-	var req string = "DELETE FROM postings WHERE cookieid='" + string(CookieId) + "'" + "AND id ='" + id + "'"
+	var req string = "DELETE FROM postings WHERE cookieid=? AND id = ?"
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
 	stntMessageBody, err = DB.Prepare(req)
 	printError()
 
+	println("CookieId: %d %d", CookieId, id)
+
 	//Читаем все значения
 	var rows *sql.Rows
-	rows, err = stntMessageBody.Query()
+	rows, err = stntMessageBody.Query(CookieId, id)
 
 	printError()
 
@@ -226,26 +228,15 @@ func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 
 	MakeCookiesGreatAgain(w, r)
 
-	cookieStr := r.FormValue("cookie")
-	if cookieStr == "" {
-		println("[DEBUG DeleteMessageHandler]INVALID COOKIE")
-		ShowErrorPage(w)
-		return
-	}
 	idStr := r.FormValue("id")
-	if cookieStr == "" {
-		println("[DEBUG DeleteMessageHandler]INVALID id")
-		ShowErrorPage(w)
-		return
-	}
-
 	// TODO:TESTING OF CREATION NEW MESSAGE
-	if cookieStr == "800" && idStr == "800" {
-		CreateNewMessage(w, "sdwe", "800")
-	}
+	//if cookieStr == "800" && idStr == "800" {
+	//	CreateNewMessage(w, "sdwe", "800")
+	//}
 
 	Header(w)
 	DeleteMessageReq(w, idStr)
+	MyMessagesShow(w)
 	Footer(w)
 }
 
@@ -293,8 +284,8 @@ func UpdateMessage(w http.ResponseWriter, id string, categoryID string, cookie s
 //========================================
 // СПИСОК МОИХ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО
 func MyMessagesShow(w http.ResponseWriter) {
-	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE cookieid=?" // + string(CookieId)
-	var stntMessageBody *sql.Stmt                                                                   // list of all adds by categoryID
+	var req string = "SELECT id, caption, content, phonenumber, created FROM postings WHERE cookieid=?" // + string(CookieId)
+	var stntMessageBody *sql.Stmt                                                                       // list of all adds by categoryID
 	stntMessageBody, err = DB.Prepare(req)
 	printError()
 
@@ -305,12 +296,15 @@ func MyMessagesShow(w http.ResponseWriter) {
 	printError()
 
 	var caption string
+	var id int
 	var content string
 	var phonenumber string
 	var created int
 	for rows.Next() {
-		rows.Scan(&caption, &content, &phonenumber, &created)
+		rows.Scan(&id, &caption, &content, &phonenumber, &created)
 		fmt.Fprintf(w, "[DEBUG ONLY-MyMessagesShow] <p>%s</p> %s %s <p>%d</p>\n", caption, content, phonenumber, created)
+
+		fmt.Fprintf(w, "<button onclick=\"location.href='/deletemessage?id=%d'\">Delete</button>", id)
 	}
 
 	printError()
