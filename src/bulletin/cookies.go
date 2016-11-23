@@ -25,7 +25,7 @@ func MakeCookiesGreatAgain(w http.ResponseWriter, r *http.Request) {
 	row := stmtCheckCookie.QueryRow(cookie.Value)
 
 	var CookieName string
-
+	err = nil
 	err = row.Scan(&CookieId, &CookieName)
 
 	var result sql.Result
