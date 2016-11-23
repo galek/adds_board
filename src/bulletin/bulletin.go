@@ -200,9 +200,9 @@ func ShowErrorPage(w http.ResponseWriter) {
 // УДАЛЕНИЕ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО
 // тут надо определиться, будем удалять на 1 странице со списком, или на отдельной странице
 //========================================
-func DeleteMessageReq(w http.ResponseWriter, cookie string, id string) {
+func DeleteMessageReq(w http.ResponseWriter, id string) {
 	// TODO: 10 for tests
-	var req string = "DELETE FROM postings WHERE cookie='" + cookie + "'" + "AND id ='" + id + "'"
+	var req string = "DELETE FROM postings WHERE cookieid='" + string(CookieId) + "'" + "AND id ='" + id + "'"
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
 	stntMessageBody, err = DB.Prepare(req)
 	printError()
@@ -217,7 +217,6 @@ func DeleteMessageReq(w http.ResponseWriter, cookie string, id string) {
 	defer stntMessageBody.Close()
 }
 
-// TODO: Передавать куку запросом
 func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 	println("DeleteMessageHandler Body: with DB ", r.FormValue("cookie"))
 	println("DeleteMessageHandler Body: with DB ", r.FormValue("id"))
@@ -243,7 +242,7 @@ func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Header(w)
-	DeleteMessageReq(w, cookieStr, idStr)
+	DeleteMessageReq(w, idStr)
 	Footer(w)
 }
 
@@ -290,8 +289,8 @@ func UpdateMessage(w http.ResponseWriter, id string, categoryID string, cookie s
 
 //========================================
 // СПИСОК МОИХ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО
-func MyMessagesShow(w http.ResponseWriter, cookie string) {
-	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE cookie=" + cookie
+func MyMessagesShow(w http.ResponseWriter) {
+	var req string = "SELECT caption, content, phonenumber, created FROM postings WHERE cookieid=" + string(CookieId)
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
 	stntMessageBody, err = DB.Prepare(req)
 	printError()
@@ -330,7 +329,7 @@ func MyMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Header(w)
-	MyMessagesShow(w, cookieStr)
+	MyMessagesShow(w)
 	Footer(w)
 }
 
