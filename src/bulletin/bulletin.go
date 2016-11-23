@@ -84,6 +84,8 @@ func main() {
 	http.HandleFunc("/adds", ListOfAddsHandler)
 	http.HandleFunc("/showmessage", MessageShowHandler)
 	http.HandleFunc("/mymessages", MyMessagesHandler)
+	http.HandleFunc("/newmessage", NewMessageHandler)
+	http.HandleFunc("/create_message", NewMessageHandlerUtil)
 	http.HandleFunc("/deletemessage", DeleteMessageHandler)
 
 	CookiesInit()
@@ -199,8 +201,61 @@ func ShowErrorPage(w http.ResponseWriter) {
 }
 
 //========================================
-// УДАЛЕНИЕ СООБЩЕНИЙ - НЕ ЗАКОНЧЕНО
-// тут надо определиться, будем удалять на 1 странице со списком, или на отдельной странице
+// СОЗДАНИЕ СООБЩЕНИЙ
+//========================================
+func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
+	Header(w)
+
+	i, err := strconv.ParseInt(r.FormValue("categoryID")[0:], 10, 32)
+	if err != nil {
+		println("Invalid error categoryID ", i)
+		ShowErrorPage(w)
+		return
+	}
+	categoryID := int(i)
+
+	fmt.Fprintf(w, "<p>")
+	fmt.Fprintf(w, "<form id=\"create_message_form\" action=\"create_message\" method=\"get\">Заголовок")
+	fmt.Fprintf(w, "</p>")
+
+	fmt.Fprintf(w, "<p>")
+	fmt.Fprintf(w, "<input type=\"text\" name=\"caption\">Текст объявления")
+	fmt.Fprintf(w, "</p>")
+
+	fmt.Fprintf(w, "<p>")
+	fmt.Fprintf(w, "<input type=\"text\" name=\"telephone\">Номер телефона")
+	fmt.Fprintf(w, "</p>")
+
+	fmt.Fprintf(w, "<p>")
+	fmt.Fprintf(w, "<input type=\"text\" name=\"categoryID\" value=\"%d\" style=\"display:none;\">", categoryID)
+	fmt.Fprintf(w, "</p>")
+
+	fmt.Fprintf(w, "<p>")
+	fmt.Fprintf(w, "<textarea name=\"body\"></textarea><input type=\"submit\" value=\"Создать объявление\"></form>")
+	fmt.Fprintf(w, "</p>")
+
+	Footer(w)
+}
+
+func NewMessageHandlerUtil(w http.ResponseWriter, r *http.Request) {
+
+	i, err := strconv.ParseInt(r.FormValue("categoryID")[0:], 10, 32)
+	if err != nil {
+		println("Invalid error categoryID ", i)
+		ShowErrorPage(w)
+		return
+	}
+	categoryID := int(i)
+
+	caption := r.FormValue("caption")
+	body := r.FormValue("body")
+	telephone := r.FormValue("telephone")
+
+	_CreateEmptyMessage(categoryID, caption, body, telephone)
+}
+
+//========================================
+// УДАЛЕНИЕ СООБЩЕНИЙ
 //========================================
 func DeleteMessageReq(w http.ResponseWriter, id string) {
 	// TODO: 10 for tests
@@ -221,7 +276,6 @@ func DeleteMessageReq(w http.ResponseWriter, id string) {
 	defer stntMessageBody.Close()
 }
 
-// TODO: CHECK
 func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 	println("DeleteMessageHandler Body: with DB ", r.FormValue("cookie"))
 	println("DeleteMessageHandler Body: with DB ", r.FormValue("id"))
@@ -229,10 +283,6 @@ func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 	MakeCookiesGreatAgain(w, r)
 
 	idStr := r.FormValue("id")
-	// TODO:TESTING OF CREATION NEW MESSAGE
-	//if cookieStr == "800" && idStr == "800" {
-	//	CreateNewMessage(w, "sdwe", "800")
-	//}
 
 	Header(w)
 	DeleteMessageReq(w, idStr)
@@ -243,15 +293,13 @@ func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 //========================================
 // СОЗДАНИЕ НОВОГО СООБЩЕНИЯ  - НЕ ЗАКОНЧЕНО
 // 99999-DATE
-func CreateNewMessage(w http.ResponseWriter, cookie string, id string) {
-	_CreateEmptyMessage(w, cookie, id)
-	UpdateMessage(w, id, "98", cookie, "caption", "content", "phonenumber", "99999")
-}
 
-func _CreateEmptyMessage(w http.ResponseWriter, cookie string, id string) {
+func _CreateEmptyMessage(categoryID int, caption string, body string, telephone string) {
 	println("[CreateEmptyMessage]")
 
-	var req string = "INSERT INTO `postings` VALUES ('" + id + "'," + "''," + "'" + cookie + "'," + "'', '', '', '9999')"
+	//var req string = "INSERT INTO `postings` VALUES ('" + id + "'," + "''," + "'" + cookie + "'," + "'', '', '', '9999')"
+
+	var req string = "INSERT INTO postings (categoryId, cookieid, caption, content, phonenumber, created) VALUES(?,?,?,?,?,9999)"
 
 	var stntMessageBody *sql.Stmt // list of all adds by categoryID
 	stntMessageBody, err = DB.Prepare(req)
@@ -259,22 +307,7 @@ func _CreateEmptyMessage(w http.ResponseWriter, cookie string, id string) {
 
 	//Читаем все значения
 	var rows *sql.Rows
-	rows, err = stntMessageBody.Query()
-
-	printError()
-	defer rows.Close()
-	defer stntMessageBody.Close()
-}
-func UpdateMessage(w http.ResponseWriter, id string, categoryID string, cookie string, caption string, content string, phonenumber string, created string) {
-	var req string = "UPDATE postings SET categoryID='" + categoryID + "'" + ", caption='" + caption + "'" + ", content='" + content + "'" + ", phonenumber='" + phonenumber + "'" + ", created='" + created + "'" + "WHERE id='" + id + "'" + "AND cookie='" + cookie + "'"
-
-	var stntMessageBody *sql.Stmt // list of all adds by categoryID
-	stntMessageBody, err = DB.Prepare(req)
-	printError()
-
-	//Читаем все значения
-	var rows *sql.Rows
-	rows, err = stntMessageBody.Query()
+	rows, err = stntMessageBody.Query(categoryID, CookieId, caption, body, telephone)
 
 	printError()
 	defer rows.Close()
@@ -313,7 +346,6 @@ func MyMessagesShow(w http.ResponseWriter) {
 }
 
 // TODO: Передавать куку запросом
-
 func MyMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	println("MyMessagesHandler Body: with DB ", r.FormValue("cookie"))
 	MakeCookiesGreatAgain(w, r)
