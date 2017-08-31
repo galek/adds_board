@@ -1,7 +1,7 @@
 /*
 Navicat MySQL Data Transfer
 
-Source Server         : localhost
+Source Server         : 1
 Source Server Version : 50525
 Source Host           : localhost:3306
 Source Database       : _abito
@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50525
 File Encoding         : 65001
 
-Date: 2016-11-23 16:40:02
+Date: 2016-11-23 19:37:25
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -39,7 +39,7 @@ CREATE TABLE `cookies` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `cookie` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of cookies
@@ -48,6 +48,7 @@ INSERT INTO `cookies` VALUES ('1', 'VQXHfDjUhsKaAwrB');
 INSERT INTO `cookies` VALUES ('2', 'eMLMpcBkZrdzDvAE');
 INSERT INTO `cookies` VALUES ('3', 'iTDwfCrJHnmpaBfH');
 INSERT INTO `cookies` VALUES ('4', 'VQrKbCElWwQcStqw');
+INSERT INTO `cookies` VALUES ('5', 'zkoGWYTESzEDZfRi');
 
 -- ----------------------------
 -- Table structure for favorites
@@ -82,6 +83,6 @@ CREATE TABLE `postings` (
 -- ----------------------------
 -- Records of postings
 -- ----------------------------
-INSERT INTO `postings` VALUES ('2', '1', '4', 'шлюха', 'я заебался', 'по вызову', '9999');
-INSERT INTO `postings` VALUES ('3', '1', '4', 'горячие девочки', 'в баню', 'на выезд', '9999');
+INSERT INTO `postings` VALUES ('2', '1', '4', 'bmw', 'E36', 'старая', '9999');
+INSERT INTO `postings` VALUES ('3', '1', '4', 'sky', 'nissian', 'ss', '9999');
 SET FOREIGN_KEY_CHECKS=1;
